@@ -229,6 +229,49 @@ def ndcg_at_k(r, k, method=0):
     return dcg_at_k(r, k, method) / dcg_max
 
 
+def apk(actual, predicted, k=10):
+    """
+    computes the average precision at k.
+    this function computes the average prescision at k between two lists of
+    items.
+    parameters
+    ----------
+    actual : list
+             a list of elements that are to be predicted (order doesn't matter)
+    predicted : list
+                a list of predicted elements (order does matter)
+    k : int, optional
+        the maximum number of predicted elements
+    returns
+    -------
+    score : double
+            the average precision at k over the input lists
+    """
+    if len(predicted) > k:
+        predicted = predicted[:k]
+
+    score = 0.0
+    num_hits = 0.0
+
+    for i, p in enumerate(predicted):
+        if p in actual and p not in predicted[:i]:
+            num_hits += 1.0
+            score += num_hits / (i + 1.0)
+
+    if not actual.any():
+        return 1.0
+
+    return score / min(len(actual), k)
+
+def recall(purchased, recommended, k):
+    return len(np.intersect1d(purchased, recommended[:k])) / float(len(purchased))
+    # return len(purchased.intersection(recommended[:k])) /
+    # float(len(purchased))
+
+
+def prec(purchased, recommended, k):
+    return len(np.intersect1d(purchased, recommended[:k])) / float(k)
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()

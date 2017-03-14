@@ -3,10 +3,11 @@
 # vim:fenc=utf-8
 #
 
-from sklearn.linear_model import LogisticRegression
-from load_movielens import load_data
-from rank_metrics import precision_at_k, average_precision
 import numpy as np
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification
+from load_movielens import load_data
+from rank_metrics import prec, apk, recall
 
 
 def main():
@@ -22,14 +23,15 @@ def main():
         truth = test[u]
         clf = LogisticRegression(C=0.001)
         clf.fit(x, y)
+        print classification.accuracy_score(clf.predict(x), y)
         pred_buy_proba = clf.predict_proba(x)[:,1].ravel()
         pruned_buy_proba = pred_buy_proba - y.ravel()
         pred_order = pruned_buy_proba.argsort()[::-1]
-        r = truth[pred_order]
-        score= average_precision(r[:mapk])
+        actual_bought = truth.nonzero()[0]
+        score= apk(actual_bought, pred_order, mapk)
         tmp = [score]
         for k in ks:
-            tmp.append(precision_at_k(r, k))
+            tmp.append(prec(actual_bought, pred_order, k))
         res += np.array(tmp)
         if u%50 == 0:
             print res/(u+1)
