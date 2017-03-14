@@ -18,7 +18,6 @@ def main():
     x = train.T
     res = np.zeros(9)
     for u in xrange(train.shape[0]):
-    #for u in xrange(4):
         y = x[:, u]
         truth = test[u]
         clf = LogisticRegression(C=0.001)
@@ -37,5 +36,6 @@ def main():
         if u%50 == 0:
             print res/(u+1)
     return res/(u+1)
+
 if __name__ == "__main__":
     main()
