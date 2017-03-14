@@ -7,18 +7,21 @@ import numpy as np
 from datetime import datetime
 
 
-url = 'http://files.grouplens.org/datasets/movielens/ml-1m.zip'
+url1 = 'http://files.grouplens.org/datasets/movielens/ml-1m.zip'
+url2 = 'http://files.grouplens.org/datasets/movielens/ml-20m.zip'
 
-def download_file(url=url):
-    response =  urllib2.urlopen(url)
-    print 'downloading file...'
-    with zipfile.ZipFile(StringIO.StringIO(response.read())) as zf:
-        zf.extractall()
+def download_file(url):
+    path = url.split('/')[-1].split('.')[0]
+    if not os.path.exists(path):
+        response =  urllib2.urlopen(url)
+        print 'downloading file...'
+        with zipfile.ZipFile(StringIO.StringIO(response.read())) as zf:
+            zf.extractall()
 
-def load_raw_data():
-    if not os.path.exists('ml-1m'):
-        download_file()
-    return 'ml-1m/ratings.dat'
+    return '%s/ratings.dat'%path
+
+def load_raw_data(url=url1):
+    return download_file(url)
 
 def rating_matrix(df):
     matrix = df.pivot(index='uid', columns='iid', values='ratings')
@@ -31,11 +34,14 @@ def ensure_same_shape(train, test):
     similar_item = sorted(similar_item)
     train = train.loc[similar_user, similar_item]
     test = test.loc[similar_user, similar_item]
-    if all(train.sum(axis=1) > 0) and all(test.sum(axis=1) > 0):
+    if all(train.sum(axis=1) > 0) and all(test.sum(axis=1) > 0)\
+        and all(train.sum(axis=0)>0) and all(test.sum(axis=0)>0):
         return train, test
 
     train = train[train.sum(axis=1) > 0]
     test = test[test.sum(axis=1) > 0]
+    train = train.loc[:, train.sum(axis=0) > 0]
+    test = test.loc[:, test.sum(axis=0) > 0]
     return ensure_same_shape(train, test)
 
 def n_folder(df, n=1, frac=0.8):
@@ -72,7 +78,7 @@ def load_leave_one_out():
 
 
 def main():
-    load_data()
+    load_raw_data(url1)
 
 
 if __name__ == "__main__":
