@@ -29,8 +29,14 @@ def ensure_same_shape(train, test):
     similar_item = set(train.columns).intersection(set(test.columns))
     similar_user = sorted(similar_user)
     similar_item = sorted(similar_item)
+    train = train.loc[similar_user, similar_item]
+    test = test.loc[similar_user, similar_item]
+    if all(train.sum(axis=1) > 0) and all(test.sum(axis=1) > 0):
+        return train, test
 
-    return train.loc[similar_user, similar_item], test.loc[similar_user, similar_item]
+    train = train[train.sum(axis=1) > 0]
+    test = test[test.sum(axis=1) > 0]
+    return ensure_same_shape(train, test)
 
 def n_folder(df, n=1, frac=0.8):
     data_size, _ = df.shape

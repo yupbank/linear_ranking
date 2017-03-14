@@ -20,9 +20,9 @@ def main():
     for u in xrange(train.shape[0]):
         y = x[:, u]
         truth = test[u]
-        clf = LogisticRegression(C=0.001)
+        clf = LogisticRegression(random_state=42, C=0.001, solver='lbfgs')
         clf.fit(x, y)
-        print u, classification.accuracy_score(clf.predict(x), y)
+        #print u, classification.accuracy_score(clf.predict(x), y)
         pred_buy_proba = clf.predict_proba(x)[:,1].ravel()
         pruned_buy_proba = pred_buy_proba - y.ravel()
         pred_order = pruned_buy_proba.argsort()[::-1]
