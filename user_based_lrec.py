@@ -16,14 +16,14 @@ def main():
     train, test = load_data()
     train, test = train.as_matrix(), test.as_matrix()
     x = train.T
-    res = np.zeros(5)
+    res = np.zeros(9)
     for u in xrange(train.shape[0]):
     #for u in xrange(4):
         y = x[:, u]
         truth = test[u]
         clf = LogisticRegression(C=0.001)
         clf.fit(x, y)
-        print classification.accuracy_score(clf.predict(x), y)
+        print u, classification.accuracy_score(clf.predict(x), y)
         pred_buy_proba = clf.predict_proba(x)[:,1].ravel()
         pruned_buy_proba = pred_buy_proba - y.ravel()
         pred_order = pruned_buy_proba.argsort()[::-1]
@@ -32,6 +32,7 @@ def main():
         tmp = [score]
         for k in ks:
             tmp.append(prec(actual_bought, pred_order, k))
+            tmp.append(recall(actual_bought, pred_order, k))
         res += np.array(tmp)
         if u%50 == 0:
             print res/(u+1)
