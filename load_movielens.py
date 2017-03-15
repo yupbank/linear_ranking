@@ -18,8 +18,6 @@ def download_file(url):
         with zipfile.ZipFile(StringIO.StringIO(response.read())) as zf:
             zf.extractall()
 
-    return '%s/ratings.dat'%path
-
 def load_raw_data(url=url1):
     return download_file(url)
 
@@ -49,8 +47,18 @@ def n_folder(df, n=1, frac=0.8):
     for i in xrange(n):
         yield np.split(df.sample(frac=1, random_state=i), [int(data_size*frac)])
 
-def load_df():
-    df = pd.read_csv(load_raw_data(), sep='::', engine='python')
+def read_ml_1m():
+    download_file(url1)
+    location = 'ml-1m/ratings.dat'
+    return pd.read_csv(location, sep='::', engine='python')
+
+def read_ml_20m():
+    download_file(url2)
+    location = 'ml-20m/ratings.csv'
+    return pd.read_csv(location)
+
+def load_df(kind='1m'):
+    df = read_ml_1m() if kind == '1m' else read_ml_20m()
     df.columns = ['uid', 'iid', 'ratings', 'time']
     df = df[df['ratings']>3]
     df['time'] = df['time'].apply(datetime.fromtimestamp)
@@ -59,13 +67,21 @@ def load_df():
     return df
 
 
-def load_data():
-    df = load_df()
+def load_data(kind='1m'):
+    df = load_df(kind)
     train, test = n_folder(df).next() 
     train, test = map(rating_matrix, [train, test])
     train, test = ensure_same_shape(train, test)
     return train, test
 
+def load_strict_split_by_time(frac=0.8):
+    df = load_df()
+    df = df.sort_values('time')
+    length = df.shape[0]
+    train, test = np.split(df, [int(length*frac)])
+    train, test = map(rating_matrix, [train, test])
+    train, test = ensure_same_shape(train, test)
+    return train, test
 
 def load_leave_one_out():
     df = load_df()
@@ -78,7 +94,7 @@ def load_leave_one_out():
 
 
 def main():
-    load_raw_data(url1)
+    load_raw_data(url2)
 
 
 if __name__ == "__main__":
